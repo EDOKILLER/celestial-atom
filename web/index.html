@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atomo Celeste</title>
+<link rel="icon" type="image/png" href="./web/icona.png">
+<style>
+  :root {
+    --fondo: #05070d; --pannello: rgba(14, 19, 32, 0.92); --bordo: #26324d; --testo: #e6ecf8;
+    --tenue: #9aa8c4; --accento: #6cb4ff; --oro: #ffd36b; --base: 18px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--fondo); color: var(--testo); overflow: hidden;
+    font: var(--base)/1.4 "Segoe UI", "Ubuntu", "Noto Sans", system-ui, sans-serif; }
+  #scena { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: block; }
+  .pannello { position: fixed; background: var(--pannello); border: 1px solid var(--bordo); border-radius: 12px;
+    backdrop-filter: blur(6px); }
+  #sx { top: 12px; left: 12px; width: 340px; max-height: calc(100% - 24px); overflow-y: auto; padding: 14px 16px; }
+  #sx h1 { font-size: 1.45em; margin: 0 0 2px; letter-spacing: .02em; }
+  #sx .sotto { color: var(--tenue); font-size: .8em; margin-bottom: 10px; }
+  h2 { font-size: .85em; text-transform: uppercase; letter-spacing: .08em; color: var(--tenue); margin: 14px 0 6px; }
+  .bottoni { display: flex; gap: 6px; flex-wrap: wrap; }
+  button { font: inherit; font-size: .9em; color: var(--testo); background: #18223a; border: 1px solid var(--bordo);
+    border-radius: 8px; padding: 7px 11px; cursor: pointer; }
+  button:hover { background: #22304f; }
+  button.attivo { background: #1f4f8a; border-color: var(--accento); }
+  input[type=search] { width: 100%; font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--bordo);
+    background: #0b1222; color: var(--testo); }
+  #risultati { margin-top: 4px; }
+  #risultati div { padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: .9em; }
+  #risultati div:hover { background: #1b2742; }
+  #risultati small { color: var(--tenue); }
+  label.casella { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; font-size: .92em; }
+  label.casella input { width: 20px; height: 20px; accent-color: var(--accento); }
+  .pallino { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex: none; }
+  .num { color: var(--tenue); font-size: .85em; margin-left: auto; }
+  input[type=range] { width: 100%; accent-color: var(--accento); }
+  #dx { top: 12px; right: 12px; width: 400px; max-height: calc(100% - 24px); overflow-y: auto; padding: 14px 16px;
+    display: none; }
+  #dx img { width: 100%; border-radius: 8px; display: block; background: #000; aspect-ratio: 1; object-fit: cover; }
+  #dx h3 { font-size: 1.4em; margin: 10px 0 2px; }
+  #dx .comune { color: var(--oro); margin-bottom: 6px; }
+  #dx table { width: 100%; border-collapse: collapse; font-size: .9em; }
+  #dx td { padding: 3px 0; vertical-align: top; }
+  #dx td:first-child { color: var(--tenue); width: 38%; }
+  .nota { background: #3a2c10; border: 1px solid #7a5a16; color: #ffe2a0; border-radius: 8px; padding: 6px 9px;
+    font-size: .85em; margin: 8px 0; }
+  #dx .bottoni button { flex: 1 1 45%; }
+  #chiudi { float: right; padding: 2px 9px; }
+  #suggerimento { position: fixed; pointer-events: none; background: rgba(10, 14, 26, .95); border: 1px solid var(--bordo);
+    border-radius: 8px; padding: 5px 9px; font-size: .85em; display: none; white-space: nowrap; z-index: 5; }
+  #etichette { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .etichetta { position: absolute; transform: translate(-50%, 0); font-size: .78em; color: #cfe0ff;
+    text-shadow: 0 0 4px #000, 0 0 2px #000; white-space: nowrap; }
+  .etichetta.guscio { color: var(--oro); font-size: .82em; opacity: .9; background: rgba(5,7,13,.55); padding: 0 6px; border-radius: 4px; }
+  .etichetta.cost { color: #8fb3e8; font-style: italic; opacity: .8; }
+  .etichetta.terra { color: #9fd4ff; font-weight: 600; font-size: .9em; }
+  #comandi { position: fixed; right: 14px; bottom: 34px; padding: 8px; display: grid;
+    grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(3, 54px); gap: 6px; }
+  #comandi button { font-size: 1.5em; padding: 0; line-height: 1; touch-action: none; user-select: none; }
+  #comandi .vuoto { visibility: hidden; }
+  #firma { position: fixed; right: 14px; bottom: 10px; color: rgba(255, 255, 255, .35); font-size: .8em; pointer-events: none; }
+  #aiuto { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); padding: 8px 14px; font-size: .85em;
+    color: var(--tenue); text-align: center; max-width: 70%; }
+  #caricamento { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3em;
+    background: var(--fondo); z-index: 10; flex-direction: column; gap: 10px; }
+  kbd { background: #1b2742; border: 1px solid var(--bordo); border-radius: 4px; padding: 0 5px; font: inherit; font-size: .9em; }
+  @media (max-width: 900px) { #sx { width: 280px; } #dx { width: 300px; } #aiuto { display: none; } }
+  #dx { z-index: 3; }
+</style>
+<script type="importmap">{ "imports": { "three": "./lib/three.module.js" } }</script>
+</head>
+<body>
+<canvas id="scena"></canvas>
+<div id="etichette"></div>
+<div id="caricamento"><img src="./web/icona.png" alt="" style="width:120px;height:120px"><div>Atomo Celeste</div><div id="stato_car" style="color:#9aa8c4;font-size:.8em">carico i dati…</div></div>
+
+<div id="sx" class="pannello">
+  <h1>⚛️ Atomo Celeste</h1>
+  <div class="sotto">La Terra al centro, il cielo a gusci · © 2026 Edoardo Battistel</div>
+  <input id="cerca" type="search" placeholder="Cerca: M 31, Orione, Andromeda, Sirio…" autocomplete="off">
+  <div id="risultati"></div>
+
+  <h2>Distanze</h2>
+  <div class="bottoni" id="viste">
+    <button data-vista="gusci" class="attivo" title="Gusci concentrici, come un atomo">⚛️ Gusci</button>
+    <button data-vista="log" title="Distanza in scala logaritmica continua">📈 Logaritmica</button>
+    <button data-vista="vera" title="Distanze vere in proporzione">📏 Scala vera</button>
+  </div>
+  <h2>Movimento</h2>
+  <div class="bottoni" id="movimenti">
+    <button data-mov="ruota" class="attivo" title="Ruota attorno alla Terra o all'oggetto scelto">🔄 Ruota</button>
+    <button data-mov="vola" title="Vola liberamente">🚀 Vola</button>
+    <button id="torna" title="Torna alla vista iniziale">🏠 Inizio</button>
+  </div>
+
+  <h2>Mostra</h2>
+  <div id="gruppi"></div>
+  <label class="casella"><input type="checkbox" id="c_stelle" checked> ✨ Stelle luminose</label>
+  <label class="casella"><input type="checkbox" id="c_cost" checked> Linee delle costellazioni</label>
+  <label class="casella"><input type="checkbox" id="c_gusci" checked> Gusci e distanze</label>
+  <label class="casella"><input type="checkbox" id="c_nomi" checked> Nomi</label>
+  <label class="casella"><input type="checkbox" id="c_misurate"> Solo distanze misurate</label>
+  <h2>Grandezza delle immagini</h2>
+  <input type="range" id="grandezza" min="0.3" max="4" step="0.1" value="1">
+</div>
+
+<div id="dx" class="pannello">
+  <button id="chiudi" title="Chiudi">✕</button>
+  <div id="scheda"></div>
+</div>
+
+<div id="aiuto" class="pannello"></div>
+<div id="comandi" class="pannello" title="Tieni premuto">
+  <button data-c="piu" title="Avvicina (tasto + o Pag↑)">＋</button>
+  <button data-c="su" title="Ruota in su">▲</button>
+  <button data-c="meno" title="Allontana (tasto − o Pag↓)">−</button>
+  <button data-c="sx" title="Ruota a sinistra">◀</button>
+  <button id="c_centro" title="Torna alla vista iniziale (tasto Inizio)">🏠</button>
+  <button data-c="dx" title="Ruota a destra">▶</button>
+  <span class="vuoto"></span>
+  <button data-c="giu" title="Ruota in giù">▼</button>
+  <span class="vuoto"></span>
+</div>
+<div id="suggerimento"></div>
+<div id="firma">© 2026 Edoardo Battistel · Atomo Celeste</div>
+
+<script type="module" src="./web/app.js"></script>
+</body>
+</html>
